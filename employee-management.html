@@ -197,6 +197,9 @@
                         <button id="btnEdit" class="btn btn-warning me-2" onclick="toggleEditMode()">
                             <i class="fas fa-edit me-1"></i>Edit
                         </button>
+                        <button id="btnDelete" class="btn btn-danger me-2" onclick="showDeleteConfirmation()">
+                            <i class="fas fa-trash me-1"></i>Delete
+                        </button>
                         <button id="btnSave" class="btn btn-success me-2" onclick="saveEmployee()" style="display: none;">
                             <i class="fas fa-save me-1"></i>Save
                         </button>
@@ -366,6 +369,43 @@
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" class="btn btn-success" onclick="saveNewEmployee()">
                         <i class="fas fa-save me-1"></i>Save Employee
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteEmployeeModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fas fa-exclamation-triangle me-2"></i>Delete Employee</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Warning!</strong> This action cannot be undone.
+                    </div>
+                    <p>Are you sure you want to delete this employee?</p>
+                    <div class="card">
+                        <div class="card-body">
+                            <h6 class="card-title" id="deleteEmployeeName">Employee Name</h6>
+                            <p class="card-text">
+                                <strong>ID:</strong> <span id="deleteEmployeeId">EMP001</span><br>
+                                <strong>Position:</strong> <span id="deleteEmployeePosition">Position</span><br>
+                                <strong>Department:</strong> <span id="deleteEmployeeDepartment">Department</span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-1"></i>Cancel
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="deleteEmployee()">
+                        <i class="fas fa-trash me-1"></i>Delete Employee
                     </button>
                 </div>
             </div>
@@ -604,6 +644,7 @@
 
             // Toggle buttons
             document.getElementById('btnEdit').style.display = editMode ? 'none' : 'inline-block';
+            document.getElementById('btnDelete').style.display = editMode ? 'none' : 'inline-block';
             document.getElementById('btnSave').style.display = editMode ? 'inline-block' : 'none';
             document.getElementById('btnCancel').style.display = editMode ? 'inline-block' : 'none';
         }
@@ -824,6 +865,67 @@
             }
 
             return true;
+        }
+
+        // Delete Employee Functions
+        function showDeleteConfirmation() {
+            if (!currentEmployee) return;
+
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            
+            // Check if user can delete this employee (same department or admin privileges)
+            if (currentUser.department !== currentEmployee.department && currentUser.username !== 'aliriza') {
+                showUpdateMessage('You can only delete employees from your department.', 'warning');
+                return;
+            }
+
+            // Populate delete confirmation modal
+            document.getElementById('deleteEmployeeName').textContent = 
+                `${currentEmployee.firstName} ${currentEmployee.lastName}`;
+            document.getElementById('deleteEmployeeId').textContent = currentEmployee.employeeId;
+            document.getElementById('deleteEmployeePosition').textContent = currentEmployee.position;
+            document.getElementById('deleteEmployeeDepartment').textContent = currentEmployee.department;
+
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('deleteEmployeeModal'));
+            modal.show();
+        }
+
+        function deleteEmployee() {
+            if (!currentEmployee) return;
+
+            // Find and remove from employees array
+            const index = employees.findIndex(emp => emp.employeeId === currentEmployee.employeeId);
+            if (index !== -1) {
+                const deletedEmployee = employees[index];
+                employees.splice(index, 1);
+                
+                // Save to localStorage
+                saveEmployeesToStorage(employees);
+
+                // Close modal
+                const modal = bootstrap.Modal.getInstance(document.getElementById('deleteEmployeeModal'));
+                modal.hide();
+
+                // Clear employee details
+                document.getElementById('employeeDetails').style.display = 'none';
+                document.getElementById('txtSearchEmployeeId').value = '';
+                
+                // Show success message
+                showUpdateMessage(
+                    `Employee ${deletedEmployee.employeeId} (${deletedEmployee.firstName} ${deletedEmployee.lastName}) has been deleted successfully.`, 
+                    'success'
+                );
+
+                // Reset current employee
+                currentEmployee = null;
+                isEditMode = false;
+                
+                // Auto-hide success message after 5 seconds
+                setTimeout(() => {
+                    hideUpdateMessage();
+                }, 5000);
+            }
         }
 
         // Real-time email validation
