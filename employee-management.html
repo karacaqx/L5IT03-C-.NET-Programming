@@ -146,9 +146,14 @@
                 <h2>
                     <i class="fas fa-users-cog me-2"></i>Employee Management
                 </h2>
-                <button class="btn btn-outline-secondary" onclick="window.location.href='dashboard.html'">
-                    <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
-                </button>
+                <div>
+                    <button class="btn btn-success me-2" onclick="showAddEmployeeForm()">
+                        <i class="fas fa-plus me-1"></i>Add Employee
+                    </button>
+                    <button class="btn btn-outline-secondary" onclick="window.location.href='dashboard.html'">
+                        <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+                    </button>
+                </div>
             </div>
 
             <!-- Search Section -->
@@ -290,6 +295,82 @@
         </div>
     </div>
 
+    <!-- Add Employee Modal -->
+    <div class="modal fade" id="addEmployeeModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="fas fa-user-plus me-2"></i>Add New Employee</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="addEmployeeForm">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Employee ID *</label>
+                                    <input type="text" id="newEmployeeId" class="form-control" placeholder="EMP006" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">First Name *</label>
+                                    <input type="text" id="newFirstName" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Last Name *</label>
+                                    <input type="text" id="newLastName" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" id="newEmail" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Phone</label>
+                                    <input type="tel" id="newPhone" class="form-control" placeholder="+1-555-0000">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label class="form-label">Department *</label>
+                                    <select id="newDepartment" class="form-select" required>
+                                        <option value="">Select Department</option>
+                                        <option value="HR">Human Resources</option>
+                                        <option value="IT">Information Technology</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Marketing">Marketing</option>
+                                    </select>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Position *</label>
+                                    <input type="text" id="newPosition" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Salary *</label>
+                                    <input type="number" id="newSalary" class="form-control" min="0" step="1000" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Hire Date *</label>
+                                    <input type="date" id="newHireDate" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <div class="form-check">
+                                        <input type="checkbox" id="newStatus" class="form-check-input" checked>
+                                        <label class="form-check-label">Active Employee</label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-success" onclick="saveNewEmployee()">
+                        <i class="fas fa-save me-1"></i>Save Employee
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
@@ -376,16 +457,28 @@
             // Apply theme
             applyTheme(currentUser.department);
 
-            // Check for employee ID in URL
+            // Check for URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const employeeId = urlParams.get('id');
-            if (employeeId) {
+            const action = urlParams.get('action');
+
+            if (action === 'add') {
+                // Show add employee modal if action=add
+                setTimeout(() => {
+                    showAddEmployeeForm();
+                }, 500);
+            } else if (employeeId) {
+                // Search for specific employee
                 document.getElementById('txtSearchEmployeeId').value = employeeId;
                 searchEmployee();
             }
 
             // Auto-focus search box
             document.getElementById('txtSearchEmployeeId').focus();
+            
+            // Set default hire date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('newHireDate').value = today;
         });
 
         function applyTheme(department) {
@@ -603,6 +696,109 @@
                 localStorage.removeItem('currentUser');
                 window.location.href = 'index.html';
             }
+        }
+
+        // Add Employee Functions
+        function showAddEmployeeForm() {
+            // Reset form
+            document.getElementById('addEmployeeForm').reset();
+            
+            // Set default values
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('newHireDate').value = today;
+            document.getElementById('newStatus').checked = true;
+            
+            // Generate next employee ID
+            const nextId = generateNextEmployeeId();
+            document.getElementById('newEmployeeId').value = nextId;
+            
+            // Show modal
+            const modal = new bootstrap.Modal(document.getElementById('addEmployeeModal'));
+            modal.show();
+        }
+
+        function generateNextEmployeeId() {
+            const maxId = employees.reduce((max, emp) => {
+                const num = parseInt(emp.employeeId.replace('EMP', ''));
+                return num > max ? num : max;
+            }, 0);
+            
+            return 'EMP' + String(maxId + 1).padStart(3, '0');
+        }
+
+        function saveNewEmployee() {
+            if (!validateNewEmployeeInput()) return;
+
+            const newEmployee = {
+                employeeId: document.getElementById('newEmployeeId').value.trim(),
+                firstName: document.getElementById('newFirstName').value.trim(),
+                lastName: document.getElementById('newLastName').value.trim(),
+                email: document.getElementById('newEmail').value.trim(),
+                phone: document.getElementById('newPhone').value.trim(),
+                department: document.getElementById('newDepartment').value,
+                position: document.getElementById('newPosition').value.trim(),
+                salary: parseFloat(document.getElementById('newSalary').value),
+                hireDate: document.getElementById('newHireDate').value,
+                isActive: document.getElementById('newStatus').checked
+            };
+
+            // Check if employee ID already exists
+            if (employees.find(emp => emp.employeeId.toUpperCase() === newEmployee.employeeId.toUpperCase())) {
+                alert('Employee ID already exists. Please use a different ID.');
+                return;
+            }
+
+            // Add to employees array
+            employees.push(newEmployee);
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addEmployeeModal'));
+            modal.hide();
+
+            // Show success message
+            showUpdateMessage(`Employee ${newEmployee.employeeId} added successfully!`, 'success');
+
+            // Optionally search for the new employee
+            document.getElementById('txtSearchEmployeeId').value = newEmployee.employeeId;
+            searchEmployee();
+        }
+
+        function validateNewEmployeeInput() {
+            const employeeId = document.getElementById('newEmployeeId').value.trim();
+            const firstName = document.getElementById('newFirstName').value.trim();
+            const lastName = document.getElementById('newLastName').value.trim();
+            const email = document.getElementById('newEmail').value.trim();
+            const department = document.getElementById('newDepartment').value;
+            const position = document.getElementById('newPosition').value.trim();
+            const salary = parseFloat(document.getElementById('newSalary').value);
+            const hireDate = document.getElementById('newHireDate').value;
+
+            if (!employeeId || !firstName || !lastName || !email || !department || !position || !hireDate) {
+                alert('Please fill in all required fields marked with *');
+                return false;
+            }
+
+            if (isNaN(salary) || salary < 0) {
+                alert('Please enter a valid salary amount.');
+                return false;
+            }
+
+            // Basic email validation
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email)) {
+                alert('Please enter a valid email address.');
+                return false;
+            }
+
+            // Check if hire date is not in future
+            const today = new Date();
+            const selectedDate = new Date(hireDate);
+            if (selectedDate > today) {
+                const confirm = window.confirm('Hire date is in the future. Do you want to continue?');
+                if (!confirm) return false;
+            }
+
+            return true;
         }
 
         // Enter key support for search
