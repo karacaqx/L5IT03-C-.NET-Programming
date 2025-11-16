@@ -1,0 +1,124 @@
+{
+  "admins": [
+    {
+      "id": 1,
+      "username": "hr_admin",
+      "password": "hr123",
+      "department": "HR",
+      "fullName": "HR Administrator"
+    },
+    {
+      "id": 2,
+      "username": "it_admin",
+      "password": "it123",
+      "department": "IT",
+      "fullName": "IT Administrator"
+    },
+    {
+      "id": 3,
+      "username": "finance_admin",
+      "password": "finance123",
+      "department": "Finance",
+      "fullName": "Finance Administrator"
+    },
+    {
+      "id": 4,
+      "username": "marketing_admin",
+      "password": "marketing123",
+      "department": "Marketing",
+      "fullName": "Marketing Administrator"
+    }
+  ],
+  "employees": [
+    {
+      "employeeId": "EMP001",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "john.doe@company.com",
+      "phone": "+1-555-0123",
+      "department": "HR",
+      "position": "HR Manager",
+      "salary": 75000,
+      "hireDate": "2022-01-15",
+      "address": {
+        "street": "123 Main St",
+        "city": "New York",
+        "state": "NY",
+        "zipCode": "10001"
+      },
+      "isActive": true
+    },
+    {
+      "employeeId": "EMP002",
+      "firstName": "Jane",
+      "lastName": "Smith",
+      "email": "jane.smith@company.com",
+      "phone": "+1-555-0124",
+      "department": "IT",
+      "position": "Software Developer",
+      "salary": 85000,
+      "hireDate": "2021-03-22",
+      "address": {
+        "street": "456 Tech Ave",
+        "city": "San Francisco",
+        "state": "CA",
+        "zipCode": "94102"
+      },
+      "isActive": true
+    },
+    {
+      "employeeId": "EMP003",
+      "firstName": "Mike",
+      "lastName": "Johnson",
+      "email": "mike.johnson@company.com",
+      "phone": "+1-555-0125",
+      "department": "Finance",
+      "position": "Financial Analyst",
+      "salary": 70000,
+      "hireDate": "2022-07-10",
+      "address": {
+        "street": "789 Money St",
+        "city": "Chicago",
+        "state": "IL",
+        "zipCode": "60601"
+      },
+      "isActive": true
+    },
+    {
+      "employeeId": "EMP004",
+      "firstName": "Sarah",
+      "lastName": "Wilson",
+      "email": "sarah.wilson@company.com",
+      "phone": "+1-555-0126",
+      "department": "Marketing",
+      "position": "Marketing Specialist",
+      "salary": 65000,
+      "hireDate": "2023-02-14",
+      "address": {
+        "street": "321 Brand Blvd",
+        "city": "Los Angeles",
+        "state": "CA",
+        "zipCode": "90210"
+      },
+      "isActive": true
+    },
+    {
+      "employeeId": "EMP005",
+      "firstName": "David",
+      "lastName": "Brown",
+      "email": "david.brown@company.com",
+      "phone": "+1-555-0127",
+      "department": "IT",
+      "position": "System Administrator",
+      "salary": 80000,
+      "hireDate": "2021-11-30",
+      "address": {
+        "street": "654 Server St",
+        "city": "Seattle",
+        "state": "WA",
+        "zipCode": "98101"
+      },
+      "isActive": true
+    }
+  ]
+}
