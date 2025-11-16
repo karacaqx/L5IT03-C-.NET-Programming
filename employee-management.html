@@ -156,6 +156,63 @@
                 </div>
             </div>
 
+            <!-- All Employees List Section -->
+            <div id="allEmployeesList" class="mb-4" style="display: none;">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h4>
+                        <i class="fas fa-users me-2"></i>All Employees
+                    </h4>
+                    <button class="btn btn-outline-secondary" onclick="hideAllEmployees()">
+                        <i class="fas fa-times me-1"></i>Hide List
+                    </button>
+                </div>
+                
+                <div class="card">
+                    <div class="card-header bg-light">
+                        <div class="row align-items-center">
+                            <div class="col-md-6">
+                                <span id="employeeCount" class="fw-bold">0 Employees Found</span>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="input-group">
+                                    <span class="input-group-text">
+                                        <i class="fas fa-filter"></i>
+                                    </span>
+                                    <select id="departmentFilter" class="form-select" onchange="filterEmployees()">
+                                        <option value="">All Departments</option>
+                                        <option value="HR">Human Resources</option>
+                                        <option value="IT">Information Technology</option>
+                                        <option value="Finance">Finance</option>
+                                        <option value="Marketing">Marketing</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover mb-0">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Department</th>
+                                        <th>Position</th>
+                                        <th>Salary</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="allEmployeesTableBody">
+                                    <!-- Employee data will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Search Section -->
             <div class="search-section">
                 <h4 class="mb-4">
@@ -521,8 +578,12 @@
             const urlParams = new URLSearchParams(window.location.search);
             const employeeId = urlParams.get('id');
             const action = urlParams.get('action');
+            const view = urlParams.get('view');
 
-            if (action === 'add') {
+            if (view === 'all') {
+                // Show all employees
+                showAllEmployees();
+            } else if (action === 'add') {
                 // Show add employee modal if action=add
                 setTimeout(() => {
                     showAddEmployeeForm();
@@ -925,6 +986,168 @@
                 setTimeout(() => {
                     hideUpdateMessage();
                 }, 5000);
+
+                // Refresh all employees list if it's visible
+                if (document.getElementById('allEmployeesList').style.display !== 'none') {
+                    loadAllEmployees();
+                }
+            }
+        }
+
+        // All Employees List Functions
+        function showAllEmployees() {
+            document.getElementById('allEmployeesList').style.display = 'block';
+            loadAllEmployees();
+        }
+
+        function hideAllEmployees() {
+            document.getElementById('allEmployeesList').style.display = 'none';
+        }
+
+        function loadAllEmployees() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            let displayEmployees = employees.filter(emp => emp.isActive);
+
+            // If not super admin, filter by department
+            if (currentUser.username !== 'aliriza') {
+                displayEmployees = displayEmployees.filter(emp => emp.department === currentUser.department);
+            }
+
+            renderEmployeeTable(displayEmployees);
+        }
+
+        function filterEmployees() {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            const departmentFilter = document.getElementById('departmentFilter').value;
+            
+            let filteredEmployees = employees.filter(emp => emp.isActive);
+
+            // Apply department filter
+            if (departmentFilter) {
+                filteredEmployees = filteredEmployees.filter(emp => emp.department === departmentFilter);
+            }
+
+            // If not super admin, further filter by user's department
+            if (currentUser.username !== 'aliriza') {
+                filteredEmployees = filteredEmployees.filter(emp => emp.department === currentUser.department);
+            }
+
+            renderEmployeeTable(filteredEmployees);
+        }
+
+        function renderEmployeeTable(employeeList) {
+            const tableBody = document.getElementById('allEmployeesTableBody');
+            const countElement = document.getElementById('employeeCount');
+            
+            // Update count
+            countElement.textContent = `${employeeList.length} Employee${employeeList.length !== 1 ? 's' : ''} Found`;
+
+            if (employeeList.length === 0) {
+                tableBody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-2"></i><br>
+                            No employees found
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tableBody.innerHTML = employeeList.map(employee => `
+                <tr>
+                    <td>
+                        <span class="badge bg-secondary">${employee.employeeId}</span>
+                    </td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="employee-avatar-small bg-primary text-white rounded-circle me-2 d-flex align-items-center justify-content-center" 
+                                 style="width: 35px; height: 35px; font-size: 0.75rem;">
+                                ${(employee.firstName[0] || '') + (employee.lastName[0] || '')}
+                            </div>
+                            <div>
+                                <div class="fw-semibold">${employee.firstName} ${employee.lastName}</div>
+                                <small class="text-muted">ID: ${employee.employeeId}</small>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <a href="mailto:${employee.email}" class="text-decoration-none">
+                            ${employee.email}
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge bg-${getDepartmentColor(employee.department)}">${employee.department}</span>
+                    </td>
+                    <td>${employee.position}</td>
+                    <td>
+                        <span class="fw-semibold text-success">$${employee.salary.toLocaleString()}</span>
+                    </td>
+                    <td>
+                        <span class="badge bg-${employee.isActive ? 'success' : 'danger'}">
+                            ${employee.isActive ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary btn-sm" onclick="viewEmployeeDetails('${employee.employeeId}')" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            ${canEditEmployee(employee) ? `
+                                <button class="btn btn-outline-warning btn-sm" onclick="editEmployeeInline('${employee.employeeId}')" title="Quick Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                            ` : ''}
+                            ${canDeleteEmployee(employee) ? `
+                                <button class="btn btn-outline-danger btn-sm" onclick="deleteEmployeeFromList('${employee.employeeId}')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            ` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function getDepartmentColor(department) {
+            const colors = {
+                'HR': 'success',
+                'IT': 'primary', 
+                'Finance': 'warning',
+                'Marketing': 'danger',
+                'Default': 'info'
+            };
+            return colors[department] || 'secondary';
+        }
+
+        function canEditEmployee(employee) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            return currentUser.department === employee.department || currentUser.username === 'aliriza';
+        }
+
+        function canDeleteEmployee(employee) {
+            const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            return currentUser.department === employee.department || currentUser.username === 'aliriza';
+        }
+
+        function viewEmployeeDetails(employeeId) {
+            document.getElementById('txtSearchEmployeeId').value = employeeId;
+            hideAllEmployees();
+            searchEmployee();
+        }
+
+        function editEmployeeInline(employeeId) {
+            viewEmployeeDetails(employeeId);
+            setTimeout(() => {
+                toggleEditMode();
+            }, 500);
+        }
+
+        function deleteEmployeeFromList(employeeId) {
+            const employee = employees.find(emp => emp.employeeId === employeeId);
+            if (employee) {
+                currentEmployee = employee;
+                showDeleteConfirmation();
             }
         }
 
